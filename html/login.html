@@ -3,23 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Connexion</title>
 </head>
 <body>
     <h1>Connexion</h1>
-    <form method="POST">
+    {{if .Error}}<p style="color:red;">{{ .Error }}</p>{{end}}
+    {{if .Success}}<p style="color:green;">{{ .Success }}</p>{{end}}
+    <form action="/login" method="post">
         <label for="username">Email :</label>
         <input type="text" id="username" name="username" required>
         <br>
         <label for="password">Mot de passe :</label>
         <input type="password" id="password" name="password" required>
         <br>
-        <button type="submit">Se connecter</button>
+        <input type="submit" value="Se connecter">
     </form>
-    
-    {{if .Error}}<p style="color:red;">{{.Error}}</p>{{end}}
-    {{if .Success}}<p style="color:green;">{{.Success}}</p>{{end}}
-
     <a href="/">Retour à l'accueil</a>
 </body>
 </html>

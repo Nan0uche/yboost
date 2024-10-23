@@ -2,40 +2,15 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page d'Accueil</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-        }
-        h1 {
-            margin-bottom: 20px;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <title>Page d'accueil</title>
 </head>
 <body>
-    <h1>Bienvenue</h1>
-    <button onclick="window.location.href='/login'">Login</button>
-    <button onclick="window.location.href='/register'">Register</button>
+    {{if .IsLogged}}
+        <p>{{.Success}}</p>
+        <a href="/account">Voir mon compte</a> | <a href="/logout">Déconnexion</a>
+    {{else}}
+        <p>Bienvenue sur le site</p>
+        <a href="/login">Se connecter</a> | <a href="/register">Créer un compte</a>
+    {{end}}
 </body>
 </html>

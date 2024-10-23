@@ -7,7 +7,9 @@
 </head>
 <body>
     <h1>Inscription</h1>
-    <form method="POST">
+    {{if .Error}}<p style="color:red;">{{ .Error }}</p>{{end}}
+    {{if .Success}}<p style="color:green;">{{ .Success }}</p>{{end}}
+    <form action="/register" method="post">
         <label for="username">Nom d'utilisateur :</label>
         <input type="text" id="username" name="username" required>
         <br>
@@ -17,12 +19,8 @@
         <label for="password">Mot de passe :</label>
         <input type="password" id="password" name="password" required>
         <br>
-        <button type="submit">S'inscrire</button>
+        <input type="submit" value="S'inscrire">
     </form>
-    
-    {{if .Error}}<p style="color:red;">{{.Error}}</p>{{end}}
-    {{if .Success}}<p style="color:green;">{{.Success}}</p>{{end}}
-
     <a href="/">Retour à l'accueil</a>
 </body>
 </html>

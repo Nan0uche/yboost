@@ -11,32 +11,19 @@ import (
 
 const dbPath = "./db/cocktail.db"
 
+type User struct {
+	ID           int
+	Username     string
+	Email        string
+	CreationDate string
+}
+
 func InitDB() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("erreur lors de l'ouverture de la base de données : %w", err)
 	}
 
-	err = InitCocktailTable(db)
-	if err != nil {
-		return nil, err
-	}
-
-	err = InitAccountTable(db)
-	if err != nil {
-		return nil, err
-	}
-
-	err = InitAvisTable(db)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println("Toutes les tables ont été créées avec succès ou sont déjà existantes.")
-	return db, nil
-}
-
-func InitCocktailTable(db *sql.DB) error {
 	createTableCocktail := `
     CREATE TABLE IF NOT EXISTS cocktail (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,15 +35,11 @@ func InitCocktailTable(db *sql.DB) error {
         temps_preparation INTEGER NOT NULL
     );`
 
-	_, err := db.Exec(createTableCocktail)
+	_, err = db.Exec(createTableCocktail)
 	if err != nil {
-		return fmt.Errorf("erreur lors de la création de la table Cocktail : %w", err)
+		return nil, fmt.Errorf("erreur lors de la création de la table Cocktail : %w", err)
 	}
-	fmt.Println("Table 'cocktail' créée avec succès ou déjà existante.")
-	return nil
-}
 
-func InitAccountTable(db *sql.DB) error {
 	createTableAccount := `
     CREATE TABLE IF NOT EXISTS account (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,18 +47,14 @@ func InitAccountTable(db *sql.DB) error {
         email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
         creation_date TEXT NOT NULL,
-		note INTEGER NOT NULL
+		note INTEGER NOT NULL DEFAULT 0
     );`
 
-	_, err := db.Exec(createTableAccount)
+	_, err = db.Exec(createTableAccount)
 	if err != nil {
-		return fmt.Errorf("erreur lors de la création de la table account : %w", err)
+		return nil, fmt.Errorf("erreur lors de la création de la table account : %w", err)
 	}
-	fmt.Println("Table 'account' créée avec succès ou déjà existante.")
-	return nil
-}
 
-func InitAvisTable(db *sql.DB) error {
 	createTableAvis := `
     CREATE TABLE IF NOT EXISTS avis (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,58 +67,89 @@ func InitAvisTable(db *sql.DB) error {
         FOREIGN KEY (id_user) REFERENCES account(id) ON DELETE CASCADE
     );`
 
-	_, err := db.Exec(createTableAvis)
+	_, err = db.Exec(createTableAvis)
 	if err != nil {
-		return fmt.Errorf("erreur lors de la création de la table avis : %w", err)
+		return nil, fmt.Errorf("erreur lors de la création de la table avis : %w", err)
 	}
-	fmt.Println("Table 'avis' créée avec succès ou déjà existante.")
-	return nil
+
+	return db, nil
 }
 
 func CloseDB(db *sql.DB) {
 	db.Close()
 }
 
-func HashPassword(password string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func GetUserInfo(db *sql.DB, id int) (User, error) {
+	var user User
+	query := "SELECT id, username, email, creation_date FROM account WHERE id = ?"
+	err := db.QueryRow(query, id).Scan(&user.ID, &user.Username, &user.Email, &user.CreationDate)
 	if err != nil {
-		return "", err
+		return user, err
 	}
-	return string(hash), nil
+	return user, nil
 }
 
-func CreateUser(db *sql.DB, username, email, password string) error {
-	creationDate := time.Now().Format("2006-01-02 15:04:05")
-	hashedPassword, err := HashPassword(password)
-	if err != nil {
-		return err
+func UpdateUserInfo(db *sql.DB, userID int, newUsername, newEmail, newPassword string) error {
+	var query string
+	var args []interface{}
+
+	if newPassword == "" {
+		query = "UPDATE account SET username = ?, email = ? WHERE id = ?"
+		args = []interface{}{newUsername, newEmail, userID}
+	} else {
+		query = "UPDATE account SET username = ?, email = ?, password = ? WHERE id = ?"
+		args = []interface{}{newUsername, newEmail, newPassword, userID}
 	}
 
-	_, err = db.Exec(`INSERT INTO account (username, email, password, creation_date, note) VALUES (?, ?, ?, ?, 0)`,
-		username, email, hashedPassword, creationDate)
+	_, err := db.Exec(query, args...)
 	return err
 }
 
-func CheckUser(db *sql.DB, email, password string) (bool, error) {
+func CheckUser(db *sql.DB, email, password string) (bool, int, error) {
+	var id int
 	var hashedPassword string
-	err := db.QueryRow(`SELECT password FROM account WHERE email = ?`, email).Scan(&hashedPassword)
+
+	query := "SELECT id, password FROM account WHERE email = ?"
+	err := db.QueryRow(query, email).Scan(&id, &hashedPassword)
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	if err != nil {
-		return false, nil
+	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)); err != nil {
+		return false, 0, nil
 	}
 
-	return true, nil
+	return true, id, nil
 }
 
 func UserExists(db *sql.DB, username, email string) (bool, error) {
 	var count int
-	err := db.QueryRow(`SELECT COUNT(*) FROM account WHERE username = ? OR email = ?`, username, email).Scan(&count)
+	query := "SELECT COUNT(*) FROM account WHERE username = ? OR email = ?"
+	err := db.QueryRow(query, username, email).Scan(&count)
 	if err != nil {
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func CreateUser(db *sql.DB, username, email, password string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	creationDate := time.Now().Format(time.RFC3339)
+	query := "INSERT INTO account (username, email, password, creation_date) VALUES (?, ?, ?, ?)"
+	_, err = db.Exec(query, username, email, hashedPassword, creationDate)
+	return err
+}
+
+func GetUserID(db *sql.DB, email string) (int, error) {
+	var id int
+	query := `SELECT id FROM account WHERE email = ?`
+	err := db.QueryRow(query, email).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
 }
