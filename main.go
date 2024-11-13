@@ -17,6 +17,7 @@ type PageData struct {
 	Username     string
 	Email        string
 	CreationDate string
+	Note         int
 }
 
 var database *sql.DB
@@ -36,6 +37,9 @@ func main() {
 	http.HandleFunc("/register", registerPage)
 	http.HandleFunc("/account", accountPage)
 	http.HandleFunc("/update", updatePage)
+	http.HandleFunc("/logout", logoutPage)
+
+	http.HandleFunc("/creation", creationPage)
 
 	log.Println("Le serveur est en cours d'exécution sur le port 8080...")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
@@ -95,7 +99,7 @@ func loginPage(w http.ResponseWriter, r *http.Request) {
 		password := r.FormValue("password")
 		isValid, userID, err := db.CheckUser(database, email, password)
 		if err != nil {
-			data.Error = "Erreur lors de la vérification de l'utilisateur."
+			data.Error = "Email/Mot de Passe éronné."
 			tmpl, _ := template.ParseFiles("html/login.html")
 			tmpl.Execute(w, data)
 			return
@@ -110,9 +114,9 @@ func loginPage(w http.ResponseWriter, r *http.Request) {
 			}
 			http.SetCookie(w, cookie)
 			data.Success = "Bienvenue " + email + "!"
-			http.Redirect(w, r, "/account", http.StatusSeeOther)
+			http.Redirect(w, r, "/", http.StatusSeeOther)
 		} else {
-			data.Error = "Identifiants invalides."
+			data.Error = "Email/Mot de Passe éronné."
 		}
 		tmpl, _ := template.ParseFiles("html/login.html")
 		tmpl.Execute(w, data)
@@ -186,8 +190,14 @@ func accountPage(w http.ResponseWriter, r *http.Request) {
 		}
 		data.Username = user.Username
 		data.Email = user.Email
-		data.CreationDate = user.CreationDate
 		data.IsLogged = true
+		data.Note = user.Note
+		creationDate, err := time.Parse("2006-01-02T15:04:05Z07:00", user.CreationDate)
+		if err == nil {
+			data.CreationDate = creationDate.Format("02/01/2006")
+		} else {
+			data.CreationDate = "Date invalide"
+		}
 	} else {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
@@ -219,5 +229,60 @@ func updatePage(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
+	}
+}
+
+func logoutPage(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session",
+		Value:   "",
+		Path:    "/",
+		Expires: time.Unix(0, 0),
+	})
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func creationPage(w http.ResponseWriter, r *http.Request) {
+	data := PageData{}
+
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	userID, _ := strconv.Atoi(cookie.Value)
+
+	if r.Method == http.MethodGet {
+		tmpl, err := template.ParseFiles("html/creation.html")
+		if err != nil {
+			http.Error(w, "Erreur lors du chargement de la page", http.StatusInternalServerError)
+			return
+		}
+		tmpl.Execute(w, data)
+	} else if r.Method == http.MethodPost {
+		name := r.FormValue("name")
+		ingredients := r.FormValue("ingredients")
+		recette := r.FormValue("recipe")
+		ustensile := r.FormValue("utensils")
+		tempsPreparation, _ := strconv.Atoi(r.FormValue("preparation_time"))
+
+		if name == "" || ingredients == "" || recette == "" || ustensile == "" || tempsPreparation <= 0 {
+			data.Error = "Tous les champs sont obligatoires."
+			tmpl, _ := template.ParseFiles("html/creation.html")
+			tmpl.Execute(w, data)
+			return
+		}
+
+		err := db.CreateCocktail(database, userID, name, ingredients, recette, ustensile, tempsPreparation)
+		if err != nil {
+			data.Error = "Erreur lors de la création du cocktail."
+			tmpl, _ := template.ParseFiles("html/creation.html")
+			tmpl.Execute(w, data)
+			return
+		}
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }

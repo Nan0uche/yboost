@@ -16,6 +16,7 @@ type User struct {
 	Username     string
 	Email        string
 	CreationDate string
+	Note         int
 }
 
 func InitDB() (*sql.DB, error) {
@@ -81,8 +82,8 @@ func CloseDB(db *sql.DB) {
 
 func GetUserInfo(db *sql.DB, id int) (User, error) {
 	var user User
-	query := "SELECT id, username, email, creation_date FROM account WHERE id = ?"
-	err := db.QueryRow(query, id).Scan(&user.ID, &user.Username, &user.Email, &user.CreationDate)
+	query := "SELECT id, username, email, creation_date, note FROM account WHERE id = ?"
+	err := db.QueryRow(query, id).Scan(&user.ID, &user.Username, &user.Email, &user.CreationDate, &user.Note)
 	if err != nil {
 		return user, err
 	}
@@ -152,4 +153,10 @@ func GetUserID(db *sql.DB, email string) (int, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+func CreateCocktail(db *sql.DB, idcreator int, name, ingredients, recette, ustensile string, tempsPreparation int) error {
+	query := `INSERT INTO cocktail (idcreator, name, ingredients, recette, ustensile, temps_preparation) VALUES (?, ?, ?, ?, ?, ?)`
+	_, err := db.Exec(query, idcreator, name, ingredients, recette, ustensile, tempsPreparation)
+	return err
 }

@@ -8,6 +8,8 @@
 <body>
 
     <h2>Mes Informations</h2>
+    <p><strong>Date de création :</strong> {{ .CreationDate }}</p>
+    <p><strong>Votre note :</strong> {{ .Note }}/5</p>
     <form action="/update" method="post">
         <label for="username">Nom d'utilisateur :</label>
         <input type="text" id="username" name="username" value="{{ .Username }}" required>
@@ -20,7 +22,6 @@
         <br>
         <input type="submit" value="Mettre à jour">
     </form>
-
     <a href="/">Retour à l'accueil</a>
 </body>
 </html>
