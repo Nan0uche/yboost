@@ -170,7 +170,7 @@ func registerPage(w http.ResponseWriter, r *http.Request) {
 					}
 					http.SetCookie(w, cookie)
 					data.Success = "Compte créé avec succès pour " + username + "!"
-					http.Redirect(w, r, "/account", http.StatusSeeOther)
+					http.Redirect(w, r, "/", http.StatusSeeOther)
 					return
 				}
 			}
@@ -319,16 +319,18 @@ func cocktailPage(w http.ResponseWriter, r *http.Request) {
 		Recette          string
 		Ustensile        []string
 		TempsPreparation int
+		CreatorUsername  string // Ajouter un champ pour le username du créateur
 	}
 
 	query := `
         SELECT id, idcreator, name, ingredients, recette, ustensile, temps_preparation
         FROM cocktail
-        WHERE id = ?
+        WHERE id = ? 
     `
 	var cocktail Cocktail
 	var ingredientsStr, ustensileStr string
 
+	// Récupérer les informations du cocktail
 	err = database.QueryRow(query, id).Scan(
 		&cocktail.ID,
 		&cocktail.IDCreator,
@@ -348,6 +350,10 @@ func cocktailPage(w http.ResponseWriter, r *http.Request) {
 		log.Println("Erreur lors de la récupération du cocktail:", err)
 		return
 	}
+
+	creatorUsername, _ := db.GetUsernameWithID(database, cocktail.IDCreator)
+
+	cocktail.CreatorUsername = creatorUsername
 
 	cocktail.Ingredients = strings.Split(ingredientsStr, ",")
 	cocktail.Ustensile = strings.Split(ustensileStr, ",")

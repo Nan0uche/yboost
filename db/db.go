@@ -174,6 +174,16 @@ func GetUserID(db *sql.DB, email string) (int, error) {
 	return id, nil
 }
 
+func GetUsernameWithID(db *sql.DB, id int) (string, error) {
+	var username string
+	query := `SELECT username FROM account WHERE id = ?`
+	err := db.QueryRow(query, id).Scan(&username)
+	if err != nil {
+		return "Inconnu", err
+	}
+	return username, nil
+}
+
 func GetCocktails(db *sql.DB) ([]Cocktail, error) {
 	query := `
 		SELECT id, idcreator, name, ingredients, recette, ustensile, temps_preparation
