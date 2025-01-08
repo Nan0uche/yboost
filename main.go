@@ -2,10 +2,12 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 	"yboost/db"
 )
@@ -38,7 +40,8 @@ func main() {
 	http.HandleFunc("/account", accountPage)
 	http.HandleFunc("/update", updatePage)
 	http.HandleFunc("/logout", logoutPage)
-
+	http.HandleFunc("/cocktails", cocktailsPage)
+	http.HandleFunc("/cocktail", cocktailPage)
 	http.HandleFunc("/creation", creationPage)
 
 	log.Println("Le serveur est en cours d'exécution sur le port 8080...")
@@ -284,5 +287,75 @@ func creationPage(w http.ResponseWriter, r *http.Request) {
 		}
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
+	}
+}
+
+func cocktailsPage(w http.ResponseWriter, r *http.Request) {
+	cocktails, err := db.GetCocktails(database)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Erreur lors de la récupération des cocktails : %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	tmpl := template.Must(template.ParseFiles("html/cocktails.html"))
+	tmpl.Execute(w, map[string]interface{}{
+		"Cocktails": cocktails,
+	})
+}
+
+func cocktailPage(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id <= 0 {
+		http.Error(w, "ID invalide", http.StatusBadRequest)
+		return
+	}
+
+	type Cocktail struct {
+		ID               int
+		IDCreator        int
+		Name             string
+		Ingredients      []string
+		Recette          string
+		Ustensile        []string
+		TempsPreparation int
+	}
+
+	query := `
+        SELECT id, idcreator, name, ingredients, recette, ustensile, temps_preparation
+        FROM cocktail
+        WHERE id = ?
+    `
+	var cocktail Cocktail
+	var ingredientsStr, ustensileStr string
+
+	err = database.QueryRow(query, id).Scan(
+		&cocktail.ID,
+		&cocktail.IDCreator,
+		&cocktail.Name,
+		&ingredientsStr,
+		&cocktail.Recette,
+		&ustensileStr,
+		&cocktail.TempsPreparation,
+	)
+
+	if err == sql.ErrNoRows {
+		http.Error(w, "Cocktail non trouvé", http.StatusNotFound)
+		log.Println("Cocktail non trouvé avec ID:", id)
+		return
+	} else if err != nil {
+		http.Error(w, fmt.Sprintf("Erreur lors de la récupération du cocktail : %v", err), http.StatusInternalServerError)
+		log.Println("Erreur lors de la récupération du cocktail:", err)
+		return
+	}
+
+	cocktail.Ingredients = strings.Split(ingredientsStr, ",")
+	cocktail.Ustensile = strings.Split(ustensileStr, ",")
+
+	tmpl := template.Must(template.ParseFiles("html/cocktail.html"))
+	err = tmpl.Execute(w, cocktail)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Erreur lors du rendu du template : %v", err), http.StatusInternalServerError)
+		return
 	}
 }
