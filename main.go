@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -86,98 +87,183 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginPage(w http.ResponseWriter, r *http.Request) {
-
-	if _, err := r.Cookie("session"); err == nil {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		return
 	}
 
-	data := PageData{}
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if r.Method == http.MethodGet {
+		w.Header().Set("Content-Type", "text/html")
 		tmpl, _ := template.ParseFiles("html/login.html")
-		tmpl.Execute(w, data)
-	} else if r.Method == http.MethodPost {
-		email := r.FormValue("username")
-		password := r.FormValue("password")
-		isValid, userID, err := db.CheckUser(database, email, password)
-		if err != nil {
-			data.Error = "Email/Mot de Passe éronné."
-			tmpl, _ := template.ParseFiles("html/login.html")
-			tmpl.Execute(w, data)
+		tmpl.Execute(w, nil)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+
+		var credentials struct {
+			Email    string `json:"email"`
+			Password string `json:"password"`
+		}
+
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&credentials); err != nil {
+			response := map[string]interface{}{
+				"success": false,
+				"message": "Format de données invalide",
+			}
+			json.NewEncoder(w).Encode(response)
 			return
 		}
-		if isValid {
-			expiration := time.Now().Add(3 * time.Hour)
-			cookie := &http.Cookie{
-				Name:    "session",
-				Value:   strconv.Itoa(userID),
-				Path:    "/",
-				Expires: expiration,
+
+		isValid, userID, err := db.CheckUser(database, credentials.Email, credentials.Password)
+		if err != nil || !isValid {
+			w.WriteHeader(http.StatusUnauthorized)
+			response := map[string]interface{}{
+				"success": false,
+				"message": "Email ou mot de passe incorrect",
 			}
-			http.SetCookie(w, cookie)
-			data.Success = "Bienvenue " + email + "!"
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-		} else {
-			data.Error = "Email/Mot de Passe éronné."
+			json.NewEncoder(w).Encode(response)
+			return
 		}
-		tmpl, _ := template.ParseFiles("html/login.html")
-		tmpl.Execute(w, data)
+
+		expiration := time.Now().Add(3 * time.Hour)
+		cookie := &http.Cookie{
+			Name:     "session",
+			Value:    strconv.Itoa(userID),
+			Path:     "/",
+			Expires:  expiration,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+		}
+		http.SetCookie(w, cookie)
+
+		response := map[string]interface{}{
+			"success": true,
+			"message": "Connexion réussie",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
 	}
+
+	w.WriteHeader(http.StatusMethodNotAllowed)
+	response := map[string]interface{}{
+		"success": false,
+		"message": "Méthode non autorisée",
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 func registerPage(w http.ResponseWriter, r *http.Request) {
-
-	if _, err := r.Cookie("session"); err == nil {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		return
 	}
 
-	data := PageData{}
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if r.Method == http.MethodGet {
+		w.Header().Set("Content-Type", "text/html")
 		tmpl, _ := template.ParseFiles("html/register.html")
-		tmpl.Execute(w, data)
-	} else if r.Method == http.MethodPost {
-		username := r.FormValue("username")
-		email := r.FormValue("email")
-		password := r.FormValue("password")
+		tmpl.Execute(w, nil)
+		return
+	}
 
-		exists, err := db.UserExists(database, username, email)
-		if err != nil {
-			data.Error = "Erreur lors de la vérification de l'utilisateur."
-			tmpl, _ := template.ParseFiles("html/register.html")
-			tmpl.Execute(w, data)
+	if r.Method == http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+
+		var credentials struct {
+			Email    string `json:"email"`
+			Password string `json:"password"`
+		}
+
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&credentials); err != nil {
+			response := map[string]interface{}{
+				"success": false,
+				"message": "Format de données invalide",
+			}
+			json.NewEncoder(w).Encode(response)
 			return
 		}
-		if exists {
-			data.Error = "Le nom d'utilisateur ou l'email existe déjà."
-		} else {
-			err = db.CreateUser(database, username, email, password)
-			if err != nil {
-				data.Error = "Erreur lors de la création de l'utilisateur."
-			} else {
-				userID, err := db.GetUserID(database, email)
-				if err != nil {
-					data.Error = "Erreur lors de la récupération de l'ID utilisateur."
-				} else {
-					expiration := time.Now().Add(3 * time.Hour)
-					cookie := &http.Cookie{
-						Name:    "session",
-						Value:   strconv.Itoa(userID),
-						Path:    "/",
-						Expires: expiration,
-					}
-					http.SetCookie(w, cookie)
-					data.Success = "Compte créé avec succès pour " + username + "!"
-					http.Redirect(w, r, "/", http.StatusSeeOther)
-					return
-				}
+
+		exists, err := db.UserExists(database, credentials.Email, credentials.Email)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			response := map[string]interface{}{
+				"success": false,
+				"message": "Erreur lors de la vérification de l'utilisateur",
 			}
+			json.NewEncoder(w).Encode(response)
+			return
 		}
-		tmpl, _ := template.ParseFiles("html/register.html")
-		tmpl.Execute(w, data)
+
+		if exists {
+			w.WriteHeader(http.StatusConflict)
+			response := map[string]interface{}{
+				"success": false,
+				"message": "L'email existe déjà",
+			}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+		err = db.CreateUser(database, credentials.Email, credentials.Email, credentials.Password)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			response := map[string]interface{}{
+				"success": false,
+				"message": "Erreur lors de la création de l'utilisateur",
+			}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+		userID, err := db.GetUserID(database, credentials.Email)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			response := map[string]interface{}{
+				"success": false,
+				"message": "Erreur lors de la récupération de l'ID utilisateur",
+			}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+		expiration := time.Now().Add(3 * time.Hour)
+		cookie := &http.Cookie{
+			Name:     "session",
+			Value:    strconv.Itoa(userID),
+			Path:     "/",
+			Expires:  expiration,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+		}
+		http.SetCookie(w, cookie)
+
+		response := map[string]interface{}{
+			"success": true,
+			"message": "Compte créé avec succès",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
 	}
+
+	w.WriteHeader(http.StatusMethodNotAllowed)
+	response := map[string]interface{}{
+		"success": false,
+		"message": "Méthode non autorisée",
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 func accountPage(w http.ResponseWriter, r *http.Request) {

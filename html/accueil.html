@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YBoost - Accueil</title>
+    <style>
+        :root {
+            --primary-color: #006837;
+            --background-color: #00A551;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: var(--background-color);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .welcome-message {
+            font-size: 1.2rem;
+        }
+
+        .user-pseudo {
+            font-weight: bold;
+            color: #FFA500;
+        }
+
+        .logout-button {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .content {
+            padding: 2rem;
+            color: white;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="welcome-message">Bienvenue, <span class="user-pseudo" id="userPseudo"></span> !</div>
+        <button class="logout-button" onclick="logout()">Déconnexion</button>
+    </div>
+    <div class="content">
+        <h1>Bienvenue sur YBoost</h1>
+        <p>Votre espace personnel est en cours de construction...</p>
+    </div>
+
+    <script>
+        // Récupérer et afficher le pseudo
+        document.addEventListener('DOMContentLoaded', () => {
+            const pseudo = localStorage.getItem('userPseudo');
+            if (!pseudo) {
+                window.location.href = '/login';
+                return;
+            }
+            document.getElementById('userPseudo').textContent = pseudo;
+        });
+
+        // Fonction de déconnexion
+        function logout() {
+            localStorage.removeItem('userPseudo');
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html> 
