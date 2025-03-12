@@ -57,10 +57,31 @@
             color: white;
             text-align: center;
         }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
 <body>
     <div class="header">
+        <div class="nav-links">
+            <a href="/accueil" style="background: rgba(255, 255, 255, 0.1);">Accueil</a>
+            <a href="/profil">Profil</a>
+        </div>
         <div class="welcome-message">Bienvenue, <span class="user-pseudo" id="userPseudo"></span> !</div>
         <button class="logout-button" onclick="logout()">Déconnexion</button>
     </div>
@@ -71,19 +92,32 @@
 
     <script>
         // Récupérer et afficher le pseudo
-        document.addEventListener('DOMContentLoaded', () => {
-            const pseudo = localStorage.getItem('userPseudo');
-            if (!pseudo) {
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/user/profile');
+                const data = await response.json();
+                
+                if (!data.success) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                document.getElementById('userPseudo').textContent = data.pseudo;
+            } catch (error) {
+                console.error('Erreur lors du chargement du profil:', error);
                 window.location.href = '/login';
-                return;
             }
-            document.getElementById('userPseudo').textContent = pseudo;
         });
 
         // Fonction de déconnexion
         function logout() {
-            localStorage.removeItem('userPseudo');
-            window.location.href = '/login';
+            fetch('/logout', { method: 'POST' })
+                .then(() => {
+                    window.location.href = '/login';
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la déconnexion:', error);
+                });
         }
     </script>
 </body>

@@ -319,8 +319,6 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Stocker le pseudo dans le localStorage pour l'utiliser sur la page d'accueil
-                    localStorage.setItem('userPseudo', formData.pseudo);
                     window.location.href = '/accueil';
                 } else {
                     alert(data.message || 'Une erreur est survenue');

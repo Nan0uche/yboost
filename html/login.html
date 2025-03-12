@@ -275,8 +275,6 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Stocker le pseudo retourné par le serveur
-                    localStorage.setItem('userPseudo', data.pseudo);
                     window.location.href = '/accueil';
                 } else {
                     alert(data.message || 'Une erreur est survenue');
