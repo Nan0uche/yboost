@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Cocktails</title>
+</head>
+<body>
+    <h1>Liste des Cocktails</h1>
+    {{if .Cocktails}}
+        <ul>
+            {{range .Cocktails}}
+                <li>
+                    <a href="/cocktail?id={{.ID}}">{{.Name}}</a>
+                </li>
+            {{end}}
+        </ul>
+    {{else}}
+        <p>Aucun cocktail trouvé.</p>
+    {{end}}
+
+    <p><a href="/">Retour à la page d'accueil</a></p>
+</body>
+</html>

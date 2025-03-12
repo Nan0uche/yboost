@@ -3,6 +3,8 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -19,7 +21,24 @@ type User struct {
 	Note         int
 }
 
+type Cocktail struct {
+	ID               int
+	IDCreator        int
+	Name             string
+	Ingredients      string
+	Recette          string
+	Ustensile        string
+	TempsPreparation int
+}
+
 func InitDB() (*sql.DB, error) {
+	dir := filepath.Dir(dbPath)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0755)
+		if err != nil {
+			return nil, fmt.Errorf("erreur lors de la création du répertoire : %w", err)
+		}
+	}
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("erreur lors de l'ouverture de la base de données : %w", err)
@@ -155,8 +174,55 @@ func GetUserID(db *sql.DB, email string) (int, error) {
 	return id, nil
 }
 
+func GetUsernameWithID(db *sql.DB, id int) (string, error) {
+	var username string
+	query := `SELECT username FROM account WHERE id = ?`
+	err := db.QueryRow(query, id).Scan(&username)
+	if err != nil {
+		return "Inconnu", err
+	}
+	return username, nil
+}
+
+func GetCocktails(db *sql.DB) ([]Cocktail, error) {
+	query := `
+		SELECT id, idcreator, name, ingredients, recette, ustensile, temps_preparation
+		FROM cocktail
+	`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("erreur lors de la récupération des cocktails : %w", err)
+	}
+	defer rows.Close()
+
+	var cocktails []Cocktail
+
+	for rows.Next() {
+		var c Cocktail
+		err := rows.Scan(&c.ID, &c.IDCreator, &c.Name, &c.Ingredients, &c.Recette, &c.Ustensile, &c.TempsPreparation)
+		if err != nil {
+			return nil, fmt.Errorf("erreur lors de la lecture des données : %w", err)
+		}
+		cocktails = append(cocktails, c)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("erreur finale lors de la récupération des données : %w", err)
+	}
+
+	return cocktails, nil
+}
+
 func CreateCocktail(db *sql.DB, idcreator int, name, ingredients, recette, ustensile string, tempsPreparation int) error {
 	query := `INSERT INTO cocktail (idcreator, name, ingredients, recette, ustensile, temps_preparation) VALUES (?, ?, ?, ?, ?, ?)`
 	_, err := db.Exec(query, idcreator, name, ingredients, recette, ustensile, tempsPreparation)
+	return err
+}
+
+func CreateAvis(db *sql.DB, cocktailid int, creatorcocktailid, userid, note, commentaire string) error {
+	creationDate := time.Now().Format(time.RFC3339)
+	query := `INSERT INTO avis (cocktailid, creatorcocktailid, userid, note, commentaire, creationDate) VALUES (?, ?, ?, ?, ?, ?)`
+	_, err := db.Exec(query, cocktailid, creatorcocktailid, userid, note, commentaire, creationDate)
 	return err
 }

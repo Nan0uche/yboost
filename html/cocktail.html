@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Détails du Cocktail</title>
+</head>
+<body>
+    <h1>Cocktail : {{.Name}}</h1>
+
+    <p><strong>Créateur :</strong> {{.CreatorUsername}}</p>
+    
+    <p><strong>Ingrédients :</strong></p>
+    <ul>
+        {{range .Ingredients}}
+            <li>{{.}}</li>
+        {{end}}
+    </ul>
+
+    <p><strong>Recette :</strong> {{.Recette}}</p>
+
+    <p><strong>Ustensiles nécessaires :</strong></p>
+    <ul>
+        {{range .Ustensile}}
+            <li>{{.}}</li>
+        {{end}}
+    </ul>
+
+    <p><strong>Temps de préparation :</strong> {{.TempsPreparation}} minutes</p>
+
+    <p><a href="/cocktails">Retour à la liste des cocktails</a></p>
+</body>
+</html>
