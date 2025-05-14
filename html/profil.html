@@ -46,6 +46,10 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        .nav-links a.active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
         .profile-container {
             max-width: 800px;
             margin: 2rem auto;
@@ -126,7 +130,10 @@
     <div class="header">
         <div class="nav-links">
             <a href="/accueil">Accueil</a>
-            <a href="/profil" style="background: rgba(255, 255, 255, 0.1);">Profil</a>
+            <a href="/cocktails">Tous les cocktails</a>
+            <a href="/creation">Créer un cocktail</a>
+            <a href="/profil" class="active">Profil</a>
+            <a href="/account">Mon compte</a>
         </div>
         <button class="logout-button" onclick="logout()">Déconnexion</button>
     </div>

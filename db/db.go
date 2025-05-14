@@ -29,6 +29,7 @@ type Cocktail struct {
 	Recette          string
 	Ustensile        string
 	TempsPreparation int
+	CreatorUsername  string
 }
 
 func InitDB() (*sql.DB, error) {

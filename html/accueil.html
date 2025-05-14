@@ -27,6 +27,9 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .welcome-message {
@@ -52,12 +55,6 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        .content {
-            padding: 2rem;
-            color: white;
-            text-align: center;
-        }
-
         .nav-links {
             display: flex;
             gap: 1rem;
@@ -71,43 +68,322 @@
             transition: background 0.3s ease;
         }
 
-        .nav-links a:hover {
+        .nav-links a:hover, .nav-links a.active {
             background: rgba(255, 255, 255, 0.1);
+        }
+
+        .hero {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .cocktails-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .cocktail-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .cocktail-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .cocktail-image {
+            height: 200px;
+            background: rgba(0, 104, 55, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cocktail-image img {
+            width: 120px;
+        }
+
+        .cocktail-details {
+            padding: 1.5rem;
+            color: white;
+        }
+
+        .cocktail-name {
+            font-size: 1.3rem;
+            color: #FFA500;
+            margin-bottom: 0.5rem;
+        }
+
+        .cocktail-creator {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .cocktail-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .view-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .view-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .rating {
+            color: gold;
+        }
+
+        .cta-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: white;
+            margin-top: 2rem;
+            border-radius: 15px;
+        }
+
+        .cta-section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .cta-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .cta-button:hover {
+            background: #008243;
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            border: 1px solid var(--primary-color);
+        }
+
+        .cta-button.secondary:hover {
+            background: rgba(0, 104, 55, 0.2);
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="nav-links">
-            <a href="/accueil" style="background: rgba(255, 255, 255, 0.1);">Accueil</a>
+            <a href="/accueil" class="active">Accueil</a>
+            <a href="/cocktails">Tous les cocktails</a>
+            <a href="/creation">Créer un cocktail</a>
             <a href="/profil">Profil</a>
         </div>
         <div class="welcome-message">Bienvenue, <span class="user-pseudo" id="userPseudo"></span> !</div>
         <button class="logout-button" onclick="logout()">Déconnexion</button>
     </div>
-    <div class="content">
+
+    <div class="hero">
         <h1>Bienvenue sur YBoost</h1>
-        <p>Votre espace personnel est en cours de construction...</p>
+        <p>Découvrez et partagez des recettes de cocktails uniques. Laissez-vous inspirer par notre communauté de mixologues amateurs et professionnels.</p>
+    </div>
+
+    <div class="content">
+        <h2 class="section-title">Cocktails populaires</h2>
+        <div id="popularCocktails" class="cocktails-grid">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Dernières créations</h2>
+        <div id="latestCocktails" class="cocktails-grid">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2>Envie de partager votre propre création ?</h2>
+            <p>Créez et partagez votre recette de cocktail avec notre communauté.</p>
+            <div class="cta-buttons">
+                <a href="/creation" class="cta-button">Créer un cocktail</a>
+                <a href="/cocktails" class="cta-button secondary">Explorer les cocktails</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2023 YBoost - Tous droits réservés</p>
     </div>
 
     <script>
         // Récupérer et afficher le pseudo
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const response = await fetch('/user/profile');
-                const data = await response.json();
+                // Récupérer le profil utilisateur
+                const profileResponse = await fetch('/user/profile');
+                const profileData = await profileResponse.json();
                 
-                if (!data.success) {
+                if (!profileData.success) {
                     window.location.href = '/login';
                     return;
                 }
 
-                document.getElementById('userPseudo').textContent = data.pseudo;
+                document.getElementById('userPseudo').textContent = profileData.pseudo;
+
+                // Charger les cocktails
+                loadCocktails();
             } catch (error) {
                 console.error('Erreur lors du chargement du profil:', error);
                 window.location.href = '/login';
             }
         });
+
+        // Charger les cocktails
+        async function loadCocktails() {
+            try {
+                const response = await fetch('/cocktails?format=json');
+                const data = await response.json();
+                
+                if (data.cocktails && data.cocktails.length > 0) {
+                    // Afficher les cocktails populaires (pour le moment, tous les cocktails)
+                    const popularContainer = document.getElementById('popularCocktails');
+                    popularContainer.innerHTML = '';
+
+                    // Limiter à 3 cocktails pour les populaires
+                    const popularCocktails = data.cocktails.slice(0, 3);
+                    popularCocktails.forEach(cocktail => {
+                        popularContainer.appendChild(createCocktailCard(cocktail));
+                    });
+
+                    // Afficher les dernières créations (inversées pour avoir les plus récents)
+                    const latestContainer = document.getElementById('latestCocktails');
+                    latestContainer.innerHTML = '';
+
+                    // Limiter à 3 cocktails pour les derniers
+                    const latestCocktails = [...data.cocktails].reverse().slice(0, 3);
+                    latestCocktails.forEach(cocktail => {
+                        latestContainer.appendChild(createCocktailCard(cocktail));
+                    });
+                } else {
+                    document.getElementById('popularCocktails').innerHTML = '<p style="color: white; text-align: center; width: 100%;">Aucun cocktail trouvé</p>';
+                    document.getElementById('latestCocktails').innerHTML = '<p style="color: white; text-align: center; width: 100%;">Aucun cocktail trouvé</p>';
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement des cocktails:', error);
+                document.getElementById('popularCocktails').innerHTML = '<p style="color: white; text-align: center; width: 100%;">Erreur lors du chargement des cocktails</p>';
+                document.getElementById('latestCocktails').innerHTML = '<p style="color: white; text-align: center; width: 100%;">Erreur lors du chargement des cocktails</p>';
+            }
+        }
+
+        // Créer une carte de cocktail
+        function createCocktailCard(cocktail) {
+            const card = document.createElement('div');
+            card.className = 'cocktail-card';
+            
+            card.innerHTML = `
+                <div class="cocktail-image">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTUwIDEwTDkwIDgwSDEwTDUwIDEwWiIgZmlsbD0iI0ZGQTUwMCIvPgogIDxyZWN0IHg9IjQ1IiB5PSI3MCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRkZBNTAwIi8+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI0MCIgcj0iNSIgZmlsbD0iI0ZGRkZGRiIvPgo8L3N2Zz4=" alt="${cocktail.name}" />
+                </div>
+                <div class="cocktail-details">
+                    <div class="cocktail-name">${cocktail.name}</div>
+                    <div class="cocktail-creator">Par ${cocktail.creatorUsername || 'Anonyme'}</div>
+                    <div class="rating">★★★★★</div>
+                    <div class="cocktail-actions">
+                        <a href="/cocktail?id=${cocktail.id}" class="view-button">Voir la recette</a>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
 
         // Fonction de déconnexion
         function logout() {

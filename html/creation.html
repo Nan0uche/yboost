@@ -2,38 +2,277 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Créer un Cocktail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YBoost - Créer un cocktail</title>
+    <style>
+        :root {
+            --primary-color: #006837;
+            --background-color: #00A551;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: var(--background-color);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .welcome-message {
+            font-size: 1.2rem;
+        }
+
+        .user-pseudo {
+            font-weight: bold;
+            color: #FFA500;
+        }
+
+        .logout-button {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .helper-text {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 0.3rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #008243;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .error-message {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff6b6b;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+    </style>
 </head>
 <body>
-    <h1>Créer un nouveau cocktail</h1>
+    <div class="header">
+        <div class="nav-links">
+            <a href="/accueil">Accueil</a>
+            <a href="/cocktails">Tous les cocktails</a>
+            <a href="/creation" class="active">Créer un cocktail</a>
+            <a href="/profil">Profil</a>
+            <a href="/account">Mon compte</a>
+        </div>
+        <div class="welcome-message">Bienvenue, <span class="user-pseudo" id="userPseudo"></span> !</div>
+        <button class="logout-button" onclick="logout()">Déconnexion</button>
+    </div>
 
-    {{if .Error}}
-        <p style="color:red;">{{.Error}}</p>
-    {{end}}
+    <div class="container">
+        <h1 class="section-title">Créer un nouveau cocktail</h1>
 
-    {{if .Success}}
-        <p style="color:green;">{{.Success}}</p>
-    {{end}}
+        {{if .Error}}
+        <div class="error-message">
+            {{.Error}}
+        </div>
+        {{end}}
 
-    <form action="/creation" method="post">
-        <label for="name">Nom du cocktail :</label>
-        <input type="text" id="name" name="name" required><br>
+        <div class="form-container">
+            <form method="post" action="/creation">
+                <div class="form-group">
+                    <label for="name">Nom du cocktail</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Ex: Mojito Royal" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ingredients">Ingrédients</label>
+                    <textarea id="ingredients" name="ingredients" class="form-control" placeholder="Citron vert, Menthe fraîche, Sucre de canne, Rhum blanc, Eau gazeuse" required></textarea>
+                    <div class="helper-text">Séparez les ingrédients par des virgules.</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="recipe">Instructions de préparation</label>
+                    <textarea id="recipe" name="recipe" class="form-control" placeholder="1. Pilez les feuilles de menthe avec le sucre et le jus de citron.
+2. Ajoutez le rhum et complétez avec de l'eau gazeuse.
+3. Servez frais avec des glaçons." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="utensils">Ustensiles nécessaires</label>
+                    <input type="text" id="utensils" name="utensils" class="form-control" placeholder="Pilon, Verre à mojito, Cuillère à mélange" required>
+                    <div class="helper-text">Séparez les ustensiles par des virgules.</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="preparation_time">Temps de préparation (minutes)</label>
+                    <input type="number" id="preparation_time" name="preparation_time" min="1" max="120" class="form-control" placeholder="10" required>
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary">Créer le cocktail</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        <label for="ingredients">Ingrédients (avec unités) :</label>
-        <textarea id="ingredients" name="ingredients" required></textarea><br>
+    <div class="footer">
+        <p>© 2023 YBoost - Tous droits réservés</p>
+    </div>
 
-        <label for="recipe">Recette :</label>
-        <textarea id="recipe" name="recipe" required></textarea><br>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Charger le profil utilisateur
+                const profileResponse = await fetch('/user/profile');
+                const profileData = await profileResponse.json();
+                
+                if (!profileData.success) {
+                    window.location.href = '/login';
+                    return;
+                }
 
-        <label for="utensils">Ustensiles :</label>
-        <input type="text" id="utensils" name="utensils" required><br>
+                document.getElementById('userPseudo').textContent = profileData.pseudo;
+            } catch (error) {
+                console.error('Erreur lors du chargement du profil:', error);
+                window.location.href = '/login';
+            }
+        });
 
-        <label for="preparation_time">Temps de préparation (en minutes) :</label>
-        <input type="number" id="preparation_time" name="preparation_time" required><br>
-
-        <button type="submit">Créer</button>
-    </form>
-
-    <a href="/">Retour à l'accueil</a>
+        // Fonction de déconnexion
+        function logout() {
+            fetch('/logout', { method: 'POST' })
+                .then(() => {
+                    window.location.href = '/login';
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la déconnexion:', error);
+                });
+        }
+    </script>
 </body>
 </html>

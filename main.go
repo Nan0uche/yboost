@@ -44,6 +44,9 @@ func main() {
 	http.HandleFunc("/cocktails", cocktailsPage)
 	http.HandleFunc("/cocktail", cocktailPage)
 	http.HandleFunc("/creation", creationPage)
+	http.HandleFunc("/user/profile", userProfileHandler)
+	http.HandleFunc("/accueil", accueilHandler)
+	http.HandleFunc("/profil", profilPage)
 
 	log.Println("Le serveur est en cours d'exécution sur le port 8080...")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
@@ -132,6 +135,17 @@ func loginPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		username, err := db.GetUsernameWithID(database, userID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			response := map[string]interface{}{
+				"success": false,
+				"message": "Erreur lors de la récupération du pseudo",
+			}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
 		expiration := time.Now().Add(3 * time.Hour)
 		cookie := &http.Cookie{
 			Name:     "session",
@@ -147,6 +161,7 @@ func loginPage(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"success": true,
 			"message": "Connexion réussie",
+			"pseudo":  username,
 		}
 		json.NewEncoder(w).Encode(response)
 		return
@@ -181,6 +196,7 @@ func registerPage(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		var credentials struct {
+			Pseudo   string `json:"pseudo"`
 			Email    string `json:"email"`
 			Password string `json:"password"`
 		}
@@ -195,7 +211,7 @@ func registerPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		exists, err := db.UserExists(database, credentials.Email, credentials.Email)
+		exists, err := db.UserExists(database, credentials.Pseudo, credentials.Email)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			response := map[string]interface{}{
@@ -210,13 +226,13 @@ func registerPage(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusConflict)
 			response := map[string]interface{}{
 				"success": false,
-				"message": "L'email existe déjà",
+				"message": "Le pseudo ou l'email existe déjà",
 			}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
 
-		err = db.CreateUser(database, credentials.Email, credentials.Email, credentials.Password)
+		err = db.CreateUser(database, credentials.Pseudo, credentials.Email, credentials.Password)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			response := map[string]interface{}{
@@ -268,6 +284,30 @@ func registerPage(w http.ResponseWriter, r *http.Request) {
 
 func accountPage(w http.ResponseWriter, r *http.Request) {
 	data := PageData{}
+
+	// Vérifier s'il y a des messages d'erreur ou de succès dans l'URL
+	if errorMsg := r.URL.Query().Get("error"); errorMsg != "" {
+		switch errorMsg {
+		case "update_failed":
+			data.Error = "La mise à jour des informations a échoué. Veuillez réessayer."
+		case "empty_fields":
+			data.Error = "Tous les champs obligatoires doivent être remplis."
+		case "invalid_email":
+			data.Error = "Format d'email invalide. Veuillez entrer une adresse email valide."
+		default:
+			data.Error = "Une erreur s'est produite."
+		}
+	}
+
+	if successMsg := r.URL.Query().Get("success"); successMsg != "" {
+		switch successMsg {
+		case "updated":
+			data.Success = "Vos informations ont été mises à jour avec succès."
+		default:
+			data.Success = "Opération réussie."
+		}
+	}
+
 	cookie, err := r.Cookie("session")
 	if err == nil {
 		userID, _ := strconv.Atoi(cookie.Value)
@@ -306,7 +346,21 @@ func updatePage(w http.ResponseWriter, r *http.Request) {
 			newEmail := r.FormValue("email")
 			newPassword := r.FormValue("password")
 
+			// Validation des champs
+			if newUsername == "" || newEmail == "" {
+				http.Redirect(w, r, "/account?error=empty_fields", http.StatusSeeOther)
+				return
+			}
+
+			// Valider le format de l'email
+			if !strings.Contains(newEmail, "@") || !strings.Contains(newEmail, ".") {
+				http.Redirect(w, r, "/account?error=invalid_email", http.StatusSeeOther)
+				return
+			}
+
+			// La fonction UpdateUserInfo gère déjà le cas où le mot de passe est vide
 			err = db.UpdateUserInfo(database, userID, newUsername, newEmail, newPassword)
+
 			if err != nil {
 				http.Redirect(w, r, "/account?error=update_failed", http.StatusSeeOther)
 				return
@@ -383,9 +437,53 @@ func cocktailsPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Structure temporaire pour le JSON
+	type CocktailJSON struct {
+		ID               int      `json:"id"`
+		IDCreator        int      `json:"idCreator"`
+		Name             string   `json:"name"`
+		Ingredients      []string `json:"ingredients"`
+		Recette          string   `json:"recette"`
+		Ustensile        []string `json:"ustensile"`
+		TempsPreparation int      `json:"tempsPreparation"`
+		CreatorUsername  string   `json:"creatorUsername"`
+	}
+
+	// Convertir les cocktails pour le format JSON
+	cocktailsJSON := make([]CocktailJSON, 0, len(cocktails))
+
+	for _, c := range cocktails {
+		username, _ := db.GetUsernameWithID(database, c.IDCreator)
+
+		cocktailJSON := CocktailJSON{
+			ID:               c.ID,
+			IDCreator:        c.IDCreator,
+			Name:             c.Name,
+			Ingredients:      strings.Split(c.Ingredients, ","),
+			Recette:          c.Recette,
+			Ustensile:        strings.Split(c.Ustensile, ","),
+			TempsPreparation: c.TempsPreparation,
+			CreatorUsername:  username,
+		}
+
+		cocktailsJSON = append(cocktailsJSON, cocktailJSON)
+	}
+
+	// Vérifier si le format JSON est demandé
+	if r.URL.Query().Get("format") == "json" {
+		w.Header().Set("Content-Type", "application/json")
+		response := map[string]interface{}{
+			"success":   true,
+			"cocktails": cocktailsJSON,
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// Sinon, afficher la page HTML
 	tmpl := template.Must(template.ParseFiles("html/cocktails.html"))
 	tmpl.Execute(w, map[string]interface{}{
-		"Cocktails": cocktails,
+		"Cocktails": cocktailsJSON,
 	})
 }
 
@@ -450,4 +548,78 @@ func cocktailPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Erreur lors du rendu du template : %v", err), http.StatusInternalServerError)
 		return
 	}
+}
+
+func profilPage(w http.ResponseWriter, r *http.Request) {
+	// Vérifier si l'utilisateur est connecté
+	_, err := r.Cookie("session")
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Afficher la page de profil
+	tmpl, _ := template.ParseFiles("html/profil.html")
+	tmpl.Execute(w, nil)
+}
+
+func userProfileHandler(w http.ResponseWriter, r *http.Request) {
+	// Vérifier si l'utilisateur est connecté
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		response := map[string]interface{}{
+			"success": false,
+			"message": "Non authentifié",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// Récupérer l'ID de l'utilisateur
+	userID, err := strconv.Atoi(cookie.Value)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		response := map[string]interface{}{
+			"success": false,
+			"message": "Session invalide",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// Récupérer les informations de l'utilisateur
+	user, err := db.GetUserInfo(database, userID)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		response := map[string]interface{}{
+			"success": false,
+			"message": "Erreur lors de la récupération des informations de l'utilisateur",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	// Renvoyer les informations
+	w.Header().Set("Content-Type", "application/json")
+	response := map[string]interface{}{
+		"success": true,
+		"pseudo":  user.Username,
+		"email":   user.Email,
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+func accueilHandler(w http.ResponseWriter, r *http.Request) {
+	// Vérifier si l'utilisateur est connecté
+	_, err := r.Cookie("session")
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Afficher la page d'accueil
+	w.Header().Set("Content-Type", "text/html")
+	tmpl, _ := template.ParseFiles("html/accueil.html")
+	tmpl.Execute(w, nil)
 }

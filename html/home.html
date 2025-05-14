@@ -2,15 +2,207 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Page d'accueil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YBoost - Bienvenue</title>
+    <style>
+        :root {
+            --primary-color: #006837;
+            --background-color: #00A551;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: var(--background-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container {
+            max-width: 1000px;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .logo {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+
+        .cta-container {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .cta-button {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            min-width: 150px;
+        }
+
+        .cta-button.primary {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .decoration {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .circle-1 {
+            width: 300px;
+            height: 300px;
+            top: -150px;
+            left: -150px;
+        }
+
+        .circle-2 {
+            width: 500px;
+            height: 500px;
+            bottom: -250px;
+            right: -250px;
+        }
+
+        .circle-3 {
+            width: 200px;
+            height: 200px;
+            top: 20%;
+            right: 10%;
+        }
+
+        .cocktail-image {
+            margin: 2rem 0;
+            width: 150px;
+            height: auto;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0); }
+        }
+
+        .features {
+            display: flex;
+            justify-content: space-around;
+            gap: 2rem;
+            margin-top: 4rem;
+            flex-wrap: wrap;
+        }
+
+        .feature {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-title {
+            font-weight: bold;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #FFA500;
+        }
+
+        .feature-description {
+            line-height: 1.5;
+        }
+
+        .footer {
+            margin-top: 4rem;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
-    {{if .IsLogged}}
-        <p>{{.Success}}</p>
-        <a href="/cocktails">Liste des Cocktails</a> | <a href="/creation">Créer un Cocktail</a> | <a href="/account">Voir mon compte</a> | <a href="/logout">Déconnexion</a>
-    {{else}}
-        <p>Bienvenue sur le site</p>
-        <a href="/cocktails">Liste des Cocktails</a> | <a href="/login">Se connecter</a> | <a href="/register">Créer un compte</a>
-    {{end}}
+    <div class="decoration">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
+    </div>
+
+    <div class="container">
+        <div class="logo">YBoost</div>
+        <div class="tagline">Découvrez, créez et partagez des cocktails uniques</div>
+
+        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTUwIDEwTDkwIDgwSDEwTDUwIDEwWiIgZmlsbD0iI0ZGQTUwMCIvPgogIDxyZWN0IHg9IjQ1IiB5PSI3MCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRkZBNTAwIi8+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI0MCIgcj0iNSIgZmlsbD0iI0ZGRkZGRiIvPgo8L3N2Zz4=" alt="Cocktail" class="cocktail-image">
+
+        <div class="cta-container">
+            <a href="/login" class="cta-button primary">Se connecter</a>
+            <a href="/register" class="cta-button">S'inscrire</a>
+        </div>
+
+        {{if .IsLogged}}
+        <div style="margin-top: 2rem;">
+            <p>{{.Success}}</p>
+            <a href="/accueil" class="cta-button primary">Accéder à mon compte</a>
+        </div>
+        {{end}}
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-title">Explorez</div>
+                <div class="feature-description">Découvrez des centaines de recettes de cocktails créées par notre communauté passionnée.</div>
+            </div>
+            <div class="feature">
+                <div class="feature-title">Créez</div>
+                <div class="feature-description">Partagez vos propres créations et inspirez d'autres mixologues amateurs.</div>
+            </div>
+            <div class="feature">
+                <div class="feature-title">Partagez</div>
+                <div class="feature-description">Échangez des avis, des conseils et perfectionnez vos compétences.</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2023 YBoost - Tous droits réservés</p>
+        </div>
+    </div>
 </body>
 </html>

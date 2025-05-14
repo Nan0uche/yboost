@@ -1,114 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
-    <title>Login Page</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #014D40, #01754D);
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .container {
-            display: flex;
-            width: 80%;
-            max-width: 1000px;
-            background-color: #005A43;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .carousel {
-            flex: 3;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            background: #0A604E;
-            padding: 20px;
-        }
-
-        .carousel img {
-            width: 200px;
-            height: auto;
-            border-radius: 5px;
-        }
-
-        .carousel p {
-            margin: 10px 0;
-            font-size: 1.2em;
-        }
-
-        .carousel .arrows {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .arrow {
-            font-size: 2em;
-            color: #fff;
-            cursor: pointer;
-        }
-
-        .login {
-            flex: 2;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 20px;
-            background: #00362E;
-        }
-
-        .login h2 {
-            margin-bottom: 20px;
-        }
-
-        .login input {
-            margin-bottom: 15px;
-            padding: 10px;
-            font-size: 1em;
-            border: none;
-            border-radius: 5px;
-            width: 100%;
-        }
-
-        .login button {
-            padding: 10px;
-            background-color: #01754D;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-            color: #fff;
-            cursor: pointer;
-        }
-
-        .login .signup {
-            margin-top: 10px;
-            font-size: 0.9em;
-            text-align: center;
-        }
-
-        .login .signup a {
-            color: #00C292;
-            text-decoration: none;
-        }
-
-        .login .signup a:hover {
-            text-decoration: underline;
-=======
     <title>YBoost - Login</title>
     <style>
         :root {
@@ -278,29 +172,11 @@
             font-size: 24px;
             cursor: pointer;
             padding: 5px;
->>>>>>> da4a422c93b690120270f806b6d6afbef630365f
         }
     </style>
 </head>
 <body>
     <div class="container">
-<<<<<<< HEAD
-        <div class="carousel">
-            <div class="arrows">
-                <span class="arrow" onclick="prevSlide()">&#10094;</span>
-                <span class="arrow" onclick="nextSlide()">&#10095;</span>
-            </div>
-            <p>Premier Journey</p>
-            <img src="https://via.placeholder.com/200x200" alt="Cocktail Image">
-            <div>⭐⭐⭐⭐⭐</div>
-        </div>
-        <div class="login">
-            <h2>Login your account</h2>
-            <input type="text" placeholder="Username" id="username">
-            <input type="password" placeholder="Password" id="password">
-            <button onclick="login()">Login</button>
-            <div class="signup">Don't have an account? <a href="#">Sign up</a></div>
-=======
         <div class="form-section">
             <h2>login your account</h2>
             <form id="loginForm">
@@ -331,26 +207,10 @@
                 <button class="nav-button">❮</button>
                 <button class="nav-button">❯</button>
             </div>
->>>>>>> da4a422c93b690120270f806b6d6afbef630365f
         </div>
     </div>
 
     <script>
-<<<<<<< HEAD
-        function prevSlide() {
-            alert("Previous slide clicked!");
-        }
-
-        function nextSlide() {
-            alert("Next slide clicked!");
-        }
-
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            alert(`Logging in with username: ${username} and password: ${password}`);
-        }
-=======
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
         const loginBtn = document.getElementById('loginBtn');
@@ -427,7 +287,6 @@
                 loginBtn.classList.remove('disabled');
             }
         });
->>>>>>> da4a422c93b690120270f806b6d6afbef630365f
     </script>
 </body>
 </html>
